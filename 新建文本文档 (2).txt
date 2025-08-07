@@ -1,0 +1,212 @@
+
+Function Money(Number As Currency)
+    Dim i, j, k, m, leng As Integer ''计数器
+    Dim Zero As Integer ''连续零标识
+    Dim Tnumber As String ''储存数字字符串,计算数组长度
+    Dim Num() As String ''定义数组
+    Dim Num1(3) As String ''存储万元以下数字
+    Dim Num2(1) As String ''储存拆分后的数字
+    Dim Cha(8), Cha1(9), Cha2(4) As String ''储存转化后的汉字
+    Dim Zcha As String ''连接后的字符串
+    Dim Flag, Flag1 As Boolean ''正负标志
+    Flag = True
+    Flag1 = False
+    Zero = 0
+    ''如果大于一亿，则不处理
+    If (Number > 99999999) Or (Number < -99999999) Then
+        MsgBox ("Sorry,数据超过一亿，暂不处理。")
+        MsgBox ("顺便问一下，你真有那么多钱吗？")
+        Money = "Sorry!"
+    Else
+        If (Number = 0) Then
+            Money = "零元整"
+        Else
+            ''*****将负数数字转化正数并更改标识*****
+            If (Number < 0) Then
+                Number = Number * (-1)
+                Flag = False
+            End If
+            ''*****小数点后超过两位，则截断*****
+            If (((Number - Int(Number)) * 100 - Int((Number - Int(Number)) * 100)) > 0) Then
+                Tnumber = CStr(Int(Number * 100) / 100)
+            Else
+                Tnumber = CStr(Number)
+            End If
+            ''*****处理四舍五入*****
+            If (((Number - Int(Number)) * 100 - Int((Number - Int(Number)) * 100)) >= 0.5) Then
+                Tnumber = CStr((CCur(Tnumber)) + 0.01)
+            End If
+            Number = CCur(Tnumber)
+            ''*****重新分配数组空间*****
+            ReDim Num(Len(Tnumber) - 1) As String
+            ''*****将字符串分开存储至数组中*****
+            For i = 0 To Len(Tnumber) - 1
+                Num(i) = Mid(Tnumber, i + 1, 1)
+            Next i
+            ''*****定义所需字符*****
+            Dim M1, M2
+            M1 = Array("零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖")
+            M2 = Array("", "拾", "佰", "仟", "万", "亿")
+            ''*****处理小于一元金额*****
+            ''*****小数点后一位，则*****
+            If ((Number - Int(Number) > 0) And ((Number * 100 - Int(Number) * 100) Mod 10) = 0) Then
+                i = i - 1
+                Num2(0) = Num(i)
+                Num(i) = ""
+                i = i - 1
+                Num(i) = ""
+                i = i - 1
+                Cha2(0) = M1(CByte(Num2(0)))
+                Cha2(1) = "角"
+                Cha2(2) = "整"
+            Else
+                ''*****小数点后两位则*****
+                If ((Number - Int(Number) > 0)) Then
+                    i = i - 1
+                    Num2(1) = Num(i)
+                    Num2(0) = Num(i - 1)
+                    Num(i) = ""
+                    i = i - 1
+                    Num(i) = ""
+                    i = i - 1
+                    Num(i) = ""
+                    i = i - 1
+                    Cha2(0) = M1(CByte(Num2(0)))
+                    Cha2(1) = "角"
+                    Cha2(2) = M1(CByte(Num2(1)))
+                    Cha2(3) = "分"
+                End If
+            End If
+            ''*****分解大于一万的整数部分*****
+            If (Int(Number) > 9999) Then
+                If (Cha2(0) <> "") Then
+                    i = i + 1
+                End If
+                For j = 3 To 0 Step -1
+                    Num1(j) = Num(i - 1)
+                    Num(i - 1) = ""
+                    i = i - 1
+                Next j
+            Else
+                If (Cha2(0) <> "") Then
+                    i = i + 1
+                End If
+                For j = 0 To i - 1
+                    Num1(j) = Num(j)
+                    Num(j) = ""
+                Next j
+            End If
+            ''*****转换万元以上数字*****
+            If (Num(0) <> "") Then
+                leng = i
+                j = 0
+                For k = 0 To leng - 1
+                    If (Num(k) = "0") Then
+                        Zero = Zero + 1
+                        For m = 1 To 5
+                            If (Cha(j - 1) = M2(m)) Then
+                                Flag1 = True
+                            End If
+                        Next m
+                        If ((Zero = 1) And (Flag1 = False)) Then
+                            Cha(j) = M1(CByte(Num(k)))
+                        End If
+                        If (Zero = 1) Then
+                            j = j + 1
+                        End If
+                    Else
+                        If (Num(k) <> "") Then
+                            If (Zero > 0) Then
+                                Cha(j - 1) = "零"
+                            End If
+                            Cha(j) = M1(CByte(Num(k)))
+                        End If
+                        j = j + 1
+                    End If
+                    If (Num(k) = "0") Then
+                        i = i - 1
+                    Else
+                        Cha(j) = M2(i - 1)
+                        j = j + 1
+                        i = i - 1
+                        Zero = 0
+                    End If
+                Next k
+                Cha(j - 1) = "万"
+                Zero = 0
+            End If
+            ''*****转换万元以下数字*****
+            If (Num1(0) <> "") Then
+                j = 0
+                Flag1 = False
+                leng = 3
+                While (Num1(leng) = "")
+                    leng = leng - 1
+                Wend
+                i = leng + 1
+                For k = 0 To leng
+                    If (Num1(k) <> "") Then
+                        If (Num1(k) = "0") Then
+                            Zero = Zero + 1
+                            For m = 1 To 5
+                                If (j <> 0) Then
+                                    If (Cha1(j - 1) = M2(m)) Then
+                                        Flag1 = True
+                                    End If
+                                End If
+                            Next m
+                            If ((Zero = 1) And (Flag1 = False)) Then
+                                Cha1(j) = M1(CByte(Num1(k)))
+                            End If
+                            If (Zero = 1) Then
+                                j = j + 1
+                            End If
+                        Else
+                            If (Num1(k) <> "") Then
+                                If (Zero > 0) Then
+                                    Cha1(j - 1) = "零"
+                                End If
+                                Cha1(j) = M1(CByte(Num1(k)))
+                            End If
+                            j = j + 1
+                        End If
+                        If (Num1(k) = "0") Then
+                            i = i - 1
+                        Else
+                            Cha1(j) = M2(i - 1)
+                            j = j + 1
+                            i = i - 1
+                            Zero = 0
+                        End If
+                    End If
+                Next k
+                Cha1(j - 1) = "元"
+                If (Cha2(0) = "") Then
+                    Cha1(j) = "整"
+                End If
+            End If
+            ''*****连接字符串*****
+            j = 0
+            While (Cha(j) <> "")
+                Zcha = Zcha & Cha(j)
+                j = j + 1
+            Wend
+            j = 0
+            While (Cha1(j) <> "")
+                Zcha = Zcha & Cha1(j)
+                j = j + 1
+            Wend
+            j = 0
+            While (Cha2(j) <> "")
+                Zcha = Zcha & Cha2(j)
+                j = j + 1
+            Wend
+            ''*****最终显示*****
+            If (Flag) Then
+                Money = Zcha
+            Else
+                Money = "负" & Zcha
+            End If
+        End If
+    End If
+End Function
